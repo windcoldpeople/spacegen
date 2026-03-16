@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Copy, RefreshCw, Trash2, Check, Wand2, Settings2, Bot, Globe } from 'lucide-react';
+import { Analytics } from "@vercel/analytics/react";
 
 // --- 多國語言設定 ---
 const LANGUAGES = [
@@ -17,7 +18,7 @@ const UI_TEXT = {
   zh: { custom: "自訂細節", prefs: "進階設定", hq: "附加高畫質後綴", ar: "畫面比例", clear: "Clear", inspire: "Inspire", engine: "目標 AI 模型", prompt: "產生的 Prompt", chars: "chars", copy: "複製", copied: "已複製", placeholder: "描述其他元素... 例如：窗外下著雨" },
   en: { custom: "Custom Details", prefs: "Preferences", hq: "Add Masterpiece Suffix", ar: "Aspect Ratio", clear: "Clear", inspire: "Inspire", engine: "Target Engine", prompt: "Generated Prompt", chars: "chars", copy: "Copy", copied: "Copied", placeholder: "Describe additional elements... e.g., raining outside" },
   ja: { custom: "カスタム詳細", prefs: "設定", hq: "高画質サフィックス追加", ar: "アスペクト比", clear: "クリア", inspire: "ランダム", engine: "対象 AI モデル", prompt: "生成されたプロンプト", chars: "文字", copy: "コピー", copied: "コピー済", placeholder: "追加要素を説明... 例: 外は雨" },
-  ko: { custom: "사용자 정의", prefs: "설정", hq: "고품질 접미사 추가", ar: "종횡비", clear: "지우기", inspire: "랜덤", engine: "대상 AI 모델", prompt: "생성된 프롬프트", chars: "자", copy: "복사", copied: "복사됨", placeholder: "추가 요소 설명... 예: 밖에 비가 옴" },
+  ko: { custom: "사용자 정의", prefs: "설정", hq: "고품질 접미사 추가", ar: "종횡比", clear: "지우기", inspire: "랜덤", engine: "대상 AI 모델", prompt: "생성된 프롬프트", chars: "자", copy: "복사", copied: "복사됨", placeholder: "추가 요소 설명... 예: 밖에 비가 옴" },
   vi: { custom: "Chi tiết Tùy chỉnh", prefs: "Cài đặt", hq: "Thêm hậu tố chất lượng", ar: "Tỷ lệ khung hình", clear: "Xóa", inspire: "Ngẫu nhiên", engine: "Mô hình AI", prompt: "Prompt Đã Tạo", chars: "kí tự", copy: "Sao chép", copied: "Đã chép", placeholder: "Thêm chi tiết... VD: ngoài trời mưa" },
   id: { custom: "Detail Kustom", prefs: "Pengaturan", hq: "Tambah Sufiks Kualitas", ar: "Rasio Aspek", clear: "Hapus", inspire: "Acak", engine: "Mesin AI", prompt: "Prompt Dihasilkan", chars: "karakter", copy: "Salin", copied: "Tersalin", placeholder: "Tambahkan elemen... cth: hujan di luar" },
   th: { custom: "รายละเอียดเพิ่มเติม", prefs: "การตั้งค่า", hq: "เพิ่มคำต่อท้ายคุณภาพ", ar: "อัตราส่วนภาพ", clear: "ล้าง", inspire: "สุ่ม", engine: "โมเดล AI", prompt: "Prompt ที่สร้าง", chars: "อักษร", copy: "คัดลอก", copied: "คัดลอกแล้ว", placeholder: "เพิ่มรายละเอียด... เช่น ฝนตกข้างนอก" },
@@ -135,7 +136,7 @@ const ASPECT_RATIOS = ['16:9', '9:16', '1:1', '4:3', '3:4'];
 
 export default function App() {
   const [lang, setLang] = useState('zh');
-  const t = UI_TEXT[lang]; // 取得目前語言的 UI 文字
+  const t = UI_TEXT[lang];
 
   const [selections, setSelections] = useState({
     emotion: [], activity: [], setting: [], character: [], spatialType: []
@@ -232,12 +233,12 @@ export default function App() {
       if (aspectRatio) finalPrompt += ` --ar ${aspectRatio} --v 6.0`;
 
     } else {
-      finalPrompt = aiModel === 'chatgpt' 
-        ? `Please generate a highly detailed, photorealistic architectural image. ` 
+      finalPrompt = aiModel === 'chatgpt'
+        ? `Please generate a highly detailed, photorealistic architectural image. `
         : `Create a cinematic, realistic architectural photograph. `;
 
       if (wBase.length) finalPrompt += `The core concept features: ${wBase.join(', ')}. `;
-      
+
       if (wStyle.length || wDesigner.length) {
         finalPrompt += `The design follows a ${wStyle.length ? wStyle.join(' and ') + ' style' : 'contemporary aesthetic'}`;
         if (wDesigner.length) finalPrompt += `, heavily inspired by the works of ${wDesigner.join(' and ')}. `;
@@ -257,15 +258,15 @@ export default function App() {
     }
 
     setGeneratedPrompt(finalPrompt.replace(/\s+/g, ' ').trim());
-
   }, [selections, customText, aspectRatio, addBaseQuality, aiModel]);
 
   const copyToClipboard = () => {
     if (!generatedPrompt) return;
+
     navigator.clipboard.writeText(generatedPrompt).then(() => {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
-    }).catch(err => {
+    }).catch(() => {
       const textArea = document.createElement("textarea");
       textArea.value = generatedPrompt;
       document.body.appendChild(textArea);
@@ -282,180 +283,198 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FDFCFB] text-stone-800 font-sans selection:bg-stone-200 selection:text-stone-900">
-      <header className="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-stone-200 p-5 lg:px-8">
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className="text-xl font-serif tracking-[0.25em] text-stone-900 uppercase font-bold">
-              SpaceGen
-            </h1>
-            <div className="h-4 w-px bg-stone-300"></div>
-            <span className="text-xs tracking-[0.15em] uppercase text-stone-500 mt-0.5">
-              SPATIAL PROMPT STUDIO
-            </span>
-          </div>
-          
-          <div className="flex items-center gap-6">
-            {/* Language Selector */}
-            <div className="relative flex items-center gap-1.5 text-stone-400 hover:text-stone-900 transition-colors cursor-pointer bg-stone-100 hover:bg-stone-200 px-3 py-1.5 rounded-full">
-              <Globe size={14} strokeWidth={1.5} />
-              <select 
-                value={lang} 
-                onChange={(e) => setLang(e.target.value)} 
-                className="bg-transparent text-[10px] tracking-widest uppercase font-medium outline-none cursor-pointer appearance-none text-center pr-1"
-              >
-                {LANGUAGES.map(l => (
-                  <option key={l.code} value={l.code}>{l.label}</option>
-                ))}
-              </select>
+    <>
+      <div className="min-h-screen bg-[#FDFCFB] text-stone-800 font-sans selection:bg-stone-200 selection:text-stone-900">
+        <header className="sticky top-0 z-10 bg-white/90 backdrop-blur-md border-b border-stone-200 p-5 lg:px-8">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <h1 className="text-xl font-serif tracking-[0.25em] text-stone-900 uppercase font-bold">
+                SpaceGen
+              </h1>
+              <div className="h-4 w-px bg-stone-300"></div>
+              <span className="text-xs tracking-[0.15em] uppercase text-stone-500 mt-0.5">
+                SPATIAL PROMPT STUDIO
+              </span>
             </div>
 
-            <button onClick={handleClear} className="flex items-center gap-2 text-xs tracking-widest uppercase font-medium text-stone-500 hover:text-stone-900 transition-colors">
-              <Trash2 size={16} strokeWidth={1.5} />
-              <span className="hidden sm:inline">{t.clear}</span>
-            </button>
-            <button onClick={handleRandomize} className="flex items-center gap-2 text-xs tracking-widest uppercase font-medium text-stone-500 hover:text-stone-900 transition-colors">
-              <RefreshCw size={16} strokeWidth={1.5} />
-              <span className="hidden sm:inline">{t.inspire}</span>
-            </button>
-          </div>
-        </div>
-      </header>
+            <div className="flex items-center gap-6">
+              <div className="relative flex items-center gap-1.5 text-stone-400 hover:text-stone-900 transition-colors cursor-pointer bg-stone-100 hover:bg-stone-200 px-3 py-1.5 rounded-full">
+                <Globe size={14} strokeWidth={1.5} />
+                <select
+                  value={lang}
+                  onChange={(e) => setLang(e.target.value)}
+                  className="bg-transparent text-[10px] tracking-widest uppercase font-medium outline-none cursor-pointer appearance-none text-center pr-1"
+                >
+                  {LANGUAGES.map(l => (
+                    <option key={l.code} value={l.code}>{l.label}</option>
+                  ))}
+                </select>
+              </div>
 
-      <main className="max-w-6xl mx-auto p-5 lg:p-8 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
-        <div className="lg:col-span-7 xl:col-span-8 space-y-10">
-          {PROMPT_DATA.map((category) => (
-            <section key={category.id} className="space-y-5">
+              <button onClick={handleClear} className="flex items-center gap-2 text-xs tracking-widest uppercase font-medium text-stone-500 hover:text-stone-900 transition-colors">
+                <Trash2 size={16} strokeWidth={1.5} />
+                <span className="hidden sm:inline">{t.clear}</span>
+              </button>
+
+              <button onClick={handleRandomize} className="flex items-center gap-2 text-xs tracking-widest uppercase font-medium text-stone-500 hover:text-stone-900 transition-colors">
+                <RefreshCw size={16} strokeWidth={1.5} />
+                <span className="hidden sm:inline">{t.inspire}</span>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <main className="max-w-6xl mx-auto p-5 lg:p-8 py-12 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
+          <div className="lg:col-span-7 xl:col-span-8 space-y-10">
+            {PROMPT_DATA.map((category) => (
+              <section key={category.id} className="space-y-5">
+                <h2 className="text-sm font-serif tracking-widest text-stone-600 uppercase flex items-center gap-4 font-medium">
+                  {category.t[lang]}
+                  <span className="text-[10px] text-stone-400 tracking-widest font-sans">{category.id}</span>
+                  <div className="h-[1px] bg-stone-200 flex-1 mt-0.5"></div>
+                </h2>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
+                  {category.options.map((option) => {
+                    const isSelected = selections[category.id].includes(option.en);
+                    return (
+                      <button
+                        key={option.en}
+                        onClick={() => toggleSelection(category.id, option.en)}
+                        className={`
+                          w-full h-full min-h-[44px] flex items-center justify-center text-center px-2 py-2 rounded-sm text-[13px] tracking-wide transition-all duration-300 border leading-tight
+                          ${isSelected
+                            ? 'bg-stone-900 border-stone-900 text-white shadow-md font-medium'
+                            : 'bg-white border-stone-300 text-stone-600 hover:border-stone-500 hover:text-stone-900'
+                          }
+                        `}
+                      >
+                        {option.t[lang]}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
+
+            <section className="space-y-4 pt-6">
               <h2 className="text-sm font-serif tracking-widest text-stone-600 uppercase flex items-center gap-4 font-medium">
-                {category.t[lang]}
-                <span className="text-[10px] text-stone-400 tracking-widest font-sans">{category.id}</span>
+                {t.custom}
+                <span className="text-[10px] text-stone-400 tracking-widest font-sans">(CUSTOM DETAILS)</span>
                 <div className="h-[1px] bg-stone-200 flex-1 mt-0.5"></div>
               </h2>
-              {/* 改用 CSS Grid 來強制對齊 */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5">
-                {category.options.map((option) => {
-                  const isSelected = selections[category.id].includes(option.en);
-                  return (
-                    <button
-                      key={option.en}
-                      onClick={() => toggleSelection(category.id, option.en)}
-                      className={`
-                        w-full h-full min-h-[44px] flex items-center justify-center text-center px-2 py-2 rounded-sm text-[13px] tracking-wide transition-all duration-300 border leading-tight
-                        ${isSelected 
-                          ? 'bg-stone-900 border-stone-900 text-white shadow-md font-medium' 
-                          : 'bg-white border-stone-300 text-stone-600 hover:border-stone-500 hover:text-stone-900'
-                        }
-                      `}
-                    >
-                      {option.t[lang]}
-                    </button>
-                  );
-                })}
-              </div>
+
+              <input
+                type="text"
+                value={customText}
+                onChange={(e) => setCustomText(e.target.value)}
+                placeholder={t.placeholder}
+                className="w-full bg-transparent border-b border-stone-300 px-2 py-3 text-sm text-stone-800 focus:outline-none focus:border-stone-900 placeholder:text-stone-400 transition-colors"
+              />
             </section>
-          ))}
-          
-          <section className="space-y-4 pt-6">
-            <h2 className="text-sm font-serif tracking-widest text-stone-600 uppercase flex items-center gap-4 font-medium">
-              {t.custom}
-              <span className="text-[10px] text-stone-400 tracking-widest font-sans">(CUSTOM DETAILS)</span>
-              <div className="h-[1px] bg-stone-200 flex-1 mt-0.5"></div>
-            </h2>
-            <input
-              type="text"
-              value={customText}
-              onChange={(e) => setCustomText(e.target.value)}
-              placeholder={t.placeholder}
-              className="w-full bg-transparent border-b border-stone-300 px-2 py-3 text-sm text-stone-800 focus:outline-none focus:border-stone-900 placeholder:text-stone-400 transition-colors"
-            />
-          </section>
-        </div>
+          </div>
 
-        <div className="lg:col-span-5 xl:col-span-4 relative">
-          <div className="sticky top-28 bg-white border border-stone-200 rounded-sm shadow-lg p-8 flex flex-col gap-8">
-            
-            <div className="space-y-4">
-              <h4 className="text-xs font-serif tracking-widest text-stone-500 uppercase flex items-center gap-2 font-medium">
-                <Bot size={14} strokeWidth={1.5} />
-                {t.engine}
-              </h4>
-              <div className="flex bg-[#FDFCFB] p-1.5 rounded-sm border border-stone-200">
-                {[{ id: 'midjourney', label: 'Midjourney' }, { id: 'chatgpt', label: 'ChatGPT' }, { id: 'gemini', label: 'Gemini' }].map(model => (
-                  <button
-                    key={model.id}
-                    onClick={() => setAiModel(model.id)}
-                    className={`flex-1 py-2.5 text-xs font-medium tracking-wider uppercase rounded-sm transition-all duration-300 ${
-                      aiModel === model.id ? 'bg-stone-900 text-white shadow-sm' : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
-                    }`}
-                  >
-                    {model.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+          <div className="lg:col-span-5 xl:col-span-4 relative">
+            <div className="sticky top-28 bg-white border border-stone-200 rounded-sm shadow-lg p-8 flex flex-col gap-8">
+              <div className="space-y-4">
+                <h4 className="text-xs font-serif tracking-widest text-stone-500 uppercase flex items-center gap-2 font-medium">
+                  <Bot size={14} strokeWidth={1.5} />
+                  {t.engine}
+                </h4>
 
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-xs font-serif tracking-widest text-stone-500 uppercase flex items-center gap-2 font-medium">
-                  <Wand2 size={14} strokeWidth={1.5} />
-                  {t.prompt}
-                </h3>
-                <span className="text-xs text-stone-400 font-mono">{generatedPrompt.length} {t.chars}</span>
-              </div>
-
-              <div className="relative group">
-                <div className={`
-                  w-full min-h-[160px] max-h-[300px] overflow-y-auto p-5 rounded-sm text-sm leading-relaxed border transition-colors
-                  ${generatedPrompt ? 'bg-[#FDFCFB] border-stone-400 text-stone-800' : 'bg-[#FDFCFB] border-stone-200 text-stone-400'}
-                `}>
-                  {generatedPrompt || '...'}
-                </div>
-                
-                {generatedPrompt && (
-                  <button onClick={copyToClipboard} className="absolute bottom-4 right-4 bg-stone-900 hover:bg-stone-800 text-white px-5 py-2.5 rounded-sm shadow-md transition-all flex items-center gap-2 transform active:scale-95">
-                    {isCopied ? <Check size={16} strokeWidth={2} /> : <Copy size={16} strokeWidth={1.5} />}
-                    <span className="text-xs font-medium tracking-widest uppercase">{isCopied ? t.copied : t.copy}</span>
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-6 pt-6 border-t border-stone-200">
-              <h4 className="text-xs font-serif tracking-widest text-stone-500 uppercase flex items-center gap-2 font-medium">
-                <Settings2 size={14} strokeWidth={1.5} />
-                {t.prefs}
-              </h4>
-              
-              <div className="flex items-center justify-between group">
-                <span className="text-sm tracking-wide text-stone-600 group-hover:text-stone-900 transition-colors">{t.hq}</span>
-                <label className="relative inline-flex items-center cursor-pointer">
-                  <input type="checkbox" className="sr-only peer" checked={addBaseQuality} onChange={(e) => setAddBaseQuality(e.target.checked)} />
-                  <div className="w-9 h-5 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-stone-900"></div>
-                </label>
-              </div>
-
-              <div className="space-y-3">
-                <span className="text-sm tracking-wide text-stone-600 block">{t.ar}</span>
-                <div className="flex flex-wrap gap-2">
-                  {ASPECT_RATIOS.map(ratio => (
+                <div className="flex bg-[#FDFCFB] p-1.5 rounded-sm border border-stone-200">
+                  {[{ id: 'midjourney', label: 'Midjourney' }, { id: 'chatgpt', label: 'ChatGPT' }, { id: 'gemini', label: 'Gemini' }].map(model => (
                     <button
-                      key={ratio}
-                      onClick={() => setAspectRatio(ratio === aspectRatio ? '' : ratio)}
-                      className={`
-                        px-4 py-1.5 rounded-sm text-xs tracking-widest transition-colors border
-                        ${aspectRatio === ratio ? 'bg-stone-200 border-stone-400 text-stone-900 font-medium' : 'bg-white border-stone-300 text-stone-500 hover:border-stone-400 hover:text-stone-800'}
-                      `}
+                      key={model.id}
+                      onClick={() => setAiModel(model.id)}
+                      className={`flex-1 py-2.5 text-xs font-medium tracking-wider uppercase rounded-sm transition-all duration-300 ${
+                        aiModel === model.id ? 'bg-stone-900 text-white shadow-sm' : 'text-stone-500 hover:text-stone-900 hover:bg-stone-100'
+                      }`}
                     >
-                      {ratio}
+                      {model.label}
                     </button>
                   ))}
                 </div>
               </div>
-            </div>
 
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xs font-serif tracking-widest text-stone-500 uppercase flex items-center gap-2 font-medium">
+                    <Wand2 size={14} strokeWidth={1.5} />
+                    {t.prompt}
+                  </h3>
+                  <span className="text-xs text-stone-400 font-mono">{generatedPrompt.length} {t.chars}</span>
+                </div>
+
+                <div className="relative group">
+                  <div
+                    className={`
+                      w-full min-h-[160px] max-h-[300px] overflow-y-auto p-5 rounded-sm text-sm leading-relaxed border transition-colors whitespace-pre-wrap break-words
+                      ${generatedPrompt ? 'bg-[#FDFCFB] border-stone-400 text-stone-800' : 'bg-[#FDFCFB] border-stone-200 text-stone-400'}
+                    `}
+                  >
+                    {generatedPrompt || '...'}
+                  </div>
+
+                  {generatedPrompt && (
+                    <button
+                      onClick={copyToClipboard}
+                      className="absolute bottom-4 right-4 bg-stone-900 hover:bg-stone-800 text-white px-5 py-2.5 rounded-sm shadow-md transition-all flex items-center gap-2 transform active:scale-95"
+                    >
+                      {isCopied ? <Check size={16} strokeWidth={2} /> : <Copy size={16} strokeWidth={1.5} />}
+                      <span className="text-xs font-medium tracking-widest uppercase">
+                        {isCopied ? t.copied : t.copy}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="space-y-6 pt-6 border-t border-stone-200">
+                <h4 className="text-xs font-serif tracking-widest text-stone-500 uppercase flex items-center gap-2 font-medium">
+                  <Settings2 size={14} strokeWidth={1.5} />
+                  {t.prefs}
+                </h4>
+
+                <div className="flex items-center justify-between group">
+                  <span className="text-sm tracking-wide text-stone-600 group-hover:text-stone-900 transition-colors">
+                    {t.hq}
+                  </span>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="sr-only peer"
+                      checked={addBaseQuality}
+                      onChange={(e) => setAddBaseQuality(e.target.checked)}
+                    />
+                    <div className="w-9 h-5 bg-stone-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-stone-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-stone-900"></div>
+                  </label>
+                </div>
+
+                <div className="space-y-3">
+                  <span className="text-sm tracking-wide text-stone-600 block">{t.ar}</span>
+                  <div className="flex flex-wrap gap-2">
+                    {ASPECT_RATIOS.map(ratio => (
+                      <button
+                        key={ratio}
+                        onClick={() => setAspectRatio(ratio === aspectRatio ? '' : ratio)}
+                        className={`
+                          px-4 py-1.5 rounded-sm text-xs tracking-widest transition-colors border
+                          ${aspectRatio === ratio ? 'bg-stone-200 border-stone-400 text-stone-900 font-medium' : 'bg-white border-stone-300 text-stone-500 hover:border-stone-400 hover:text-stone-800'}
+                        `}
+                      >
+                        {ratio}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </main>
-    </div>
+        </main>
+      </div>
+
+      <Analytics />
+    </>
   );
 }
