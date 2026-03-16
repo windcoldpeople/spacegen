@@ -1,13 +1,34 @@
 # SpaceGen
 
-AI Concept Generator for Spatial Design.
+SpaceGen is an AI concept generator for spatial design.
 
-Generate architectural concepts from:
+It helps generate architectural prompts from:
+
 - Emotion
 - Activity
 - Setting
 - Character
 - Spatial Type
 
-Live Demo:
+## Live Demo
 https://spacegen-six.vercel.app
+
+## Features
+
+- Multi-language interface
+- Spatial prompt generation
+- Midjourney / ChatGPT / Gemini output modes
+- Matrix-based design logic
+- Custom detail input
+- Aspect ratio control
+
+## Tech Stack
+
+- React
+- Vite
+- Tailwind CSS
+- Vercel
+
+## Author
+
+Leo
